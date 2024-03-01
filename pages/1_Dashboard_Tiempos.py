@@ -287,6 +287,47 @@ def main():
     # Mostrar el gráfico
     st.altair_chart(combined_chart, use_container_width=True)
 
+    # Convertir la columna 'Pais' a un tipo de datos nominal
+    filtered_df['Pais'] = filtered_df['Pais'].astype('category')
+
+    # Contar el recuento distintivo de IDEtapa para cada país
+    count_by_country = filtered_df.groupby('Pais')['IDEtapa'].nunique().reset_index()
+    count_by_country.columns = ['Pais', 'IDEtapa']
+
+    # Definir la paleta de colores para los países
+    country_colors = {
+        "Argentina": "#36A9E1",
+        "Bolivia": "#F39200",
+        "Brasil": "#009640",
+        "Paraguay": "#E30613",
+        "Uruguay": "#27348B"
+    }
+
+    # Crear el gráfico de barras con Altair y la paleta de colores personalizada
+    bar_chart = alt.Chart(count_by_country).mark_bar().encode(
+        x=alt.X('Pais:N', title='País'),
+        y=alt.Y('IDEtapa:Q', title='Recuento Distintivo de IDEtapa'),
+        tooltip=['Pais', 'IDEtapa'],
+        color=alt.Color('Pais:N', legend=None, scale=alt.Scale(domain=list(country_colors.keys()), range=list(country_colors.values())))
+    ).properties(
+        title='Recuento Distintivo de IDEtapa por País'
+    )
+
+    # Añadir etiquetas de valores encima de las barras
+    text = bar_chart.mark_text(
+        align='center',
+        baseline='middle',
+        dy=-5  # ajuste de posición vertical
+    ).encode(
+        text='IDEtapa:Q'
+    )
+
+    # Combinar gráfico de barras y etiquetas de texto
+    combined_chart = (bar_chart + text)
+
+    # Mostrar el gráfico
+    st.altair_chart(combined_chart, use_container_width=True)
+
     # Filtrar el DataFrame para obtener solo las filas con 'Productividad' igual a 'Alta Demora'
     proyectos_alta_demora = filtered_df[filtered_df['Productividad'] == 'Alta Demora']
 
